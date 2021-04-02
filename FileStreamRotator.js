@@ -193,6 +193,35 @@ FileStreamRotator.getDate = function (format, date_format, utc) {
 }
 
 /**
+ * Decides if a rotation should be made based on the frequency settings
+ * @param {string} currentDate
+ * @param {object} rotation
+ * @param {string} dateFormat
+ * @param {boolean} utc
+ * @returns {boolean}
+ */
+FileStreamRotator.shouldDoFrequencyRotate = function (currentDate, rotation, dateFormat, utc) {
+    dateFormat = dateFormat || DATE_FORMAT;
+    let currentMoment = utc ? moment.utc() : moment().local();
+    let currentLogMoment = utc ? moment.utc(currentDate, dateFormat) : moment(currentDate, dateFormat).local();
+
+    switch (rotation.type) {
+        case 'm':
+            return moment.duration(currentMoment.diff(currentLogMoment)).asMinutes() >= rotation.digit;
+        case 'h':
+            return moment.duration(currentMoment.diff(currentLogMoment)).asHours() >= rotation.digit;
+        case 'daily':
+        case 'custom':
+        case 'test':
+            // to keep previous behaviour
+            return currentDate != this.getDate(rotation, dateFormat, utc);
+    }
+
+    // to keep previous behaviour
+    return currentDate != this.getDate(rotation, dateFormat, utc);
+}
+
+/**
  * Read audit json object from disk or return new object or null
  * @param max_logs
  * @param audit_file
@@ -577,7 +606,8 @@ FileStreamRotator.getStream = function (options) {
 
         stream.write = (function (str, encoding) {
             var newDate = this.getDate(frequencyMetaData, dateFormat, options.utc);
-            if (newDate != curDate || (fileSize && curSize > fileSize)) {
+            var shouldDoFrequencyRotate = this.shouldDoFrequencyRotate(curDate, frequencyMetaData, dateFormat, options.utc);
+            if (shouldDoFrequencyRotate || (fileSize && curSize > fileSize)) {
                 var newLogfile = filename + (curDate ? "." + newDate : "");
                 if(filename.match(/%DATE%/) && curDate){
                     newLogfile = filename.replace(/%DATE%/g,newDate);
