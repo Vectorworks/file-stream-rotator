@@ -1,5 +1,5 @@
 {
-    "name": "file-stream-rotator",
+    "name": "@vectorworks/file-stream-rotator",
     "version": "0.5.7",
     "description": "Automated stream rotation useful for log files",
     "main": "FileStreamRotator.js",
