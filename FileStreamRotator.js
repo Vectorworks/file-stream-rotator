@@ -173,22 +173,6 @@ FileStreamRotator.parseFileSize = function (size) {
 FileStreamRotator.getDate = function (format, date_format, utc) {
     date_format = date_format || DATE_FORMAT;
     let currentMoment = utc ? moment.utc() : moment().local()
-    if (format && staticFrequency.indexOf(format.type) !== -1) {
-        switch (format.type) {
-            case 'm':
-                var minute = Math.floor(currentMoment.minutes() / format.digit) * format.digit;
-                return currentMoment.minutes(minute).format(date_format);
-                break;
-            case 'h':
-                var hour = Math.floor(currentMoment.hour() / format.digit) * format.digit;
-                return currentMoment.hour(hour).format(date_format);
-                break;
-            case 'daily':
-            case 'custom':
-            case 'test':
-                return currentMoment.format(date_format);
-        }
-    }
     return currentMoment.format(date_format);
 }
 
